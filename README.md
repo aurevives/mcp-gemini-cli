@@ -24,14 +24,6 @@ npm install -g @google/gemini-cli
 gemini  # Follow auth setup
 ```
 
-### Install MCP
-
-```bash
-git clone https://github.com/aurevives/mcp-gemini-cli.git
-cd mcp-gemini-cli
-pip install -r requirements.txt
-```
-
 ### Configure Claude Code
 
 **Option 1: Direct from GitHub with uvx (Recommended)**
@@ -41,14 +33,16 @@ claude mcp add gemini-cli -- uvx --from git+https://github.com/aurevives/mcp-gem
 
 **Option 2: Local installation**
 ```bash
-claude mcp add-json gemini-cli '{
-  "command": "python3",
-  "args": ["/path/to/mcp-gemini-cli/server.py"],
-  "env": {}
-}'
+# First clone and install locally
+git clone https://github.com/aurevives/mcp-gemini-cli.git
+cd mcp-gemini-cli
+pip install -r requirements.txt
+
+# Then add to Claude Code
+claude mcp add gemini-cli -- python3 /absolute/path/to/mcp-gemini-cli/server.py
 ```
 
-Restart Claude Code.
+The MCP server will be automatically available in Claude Code - no restart needed.
 
 ## Tools
 
