@@ -1,5 +1,5 @@
 """
-Wrapper client pour Gemini CLI
+Wrapper client for Gemini CLI
 """
 
 import asyncio
@@ -11,7 +11,7 @@ from pathlib import Path
 
 
 class GeminiClient:
-    """Client wrapper pour interagir avec Gemini CLI."""
+    """Client wrapper to interact with Gemini CLI."""
     
     def __init__(self):
         self.base_command = ["gemini"]
@@ -25,25 +25,25 @@ class GeminiClient:
         **kwargs
     ) -> str:
         """
-        Exécute un prompt Gemini CLI en mode non-interactif.
+        Execute a Gemini CLI prompt in non-interactive mode.
         
         Args:
-            prompt: Le prompt à envoyer à Gemini
-            model: Modèle Gemini à utiliser
-            stdin_data: Données à envoyer via stdin (optionnel)
-            **kwargs: Options supplémentaires (debug, all_files, etc.)
+            prompt: The prompt to send to Gemini
+            model: Gemini model to use
+            stdin_data: Data to send via stdin (optional)
+            **kwargs: Additional options (debug, all_files, etc.)
             
         Returns:
-            str: Réponse de Gemini CLI
+            str: Gemini CLI response
             
         Raises:
-            Exception: Si l'exécution échoue
+            Exception: If execution fails
         """
         try:
-            # Construction de la commande
+            # Build command
             cmd = self.base_command + ["-m", model, "-p", prompt]
             
-            # Ajout des flags optionnels
+            # Add optional flags
             if kwargs.get("debug"):
                 cmd.append("--debug")
             if kwargs.get("all_files"):
@@ -51,9 +51,9 @@ class GeminiClient:
             if kwargs.get("show_memory_usage"):
                 cmd.append("--show_memory_usage")
             
-            self.logger.info(f"Exécution commande Gemini: {' '.join(cmd[:4])}...")
+            self.logger.info(f"Executing Gemini command: {' '.join(cmd[:4])}...")
             
-            # Exécution de la commande
+            # Execute command
             process = await asyncio.create_subprocess_exec(
                 *cmd,
                 stdin=subprocess.PIPE if stdin_data else None,
@@ -68,16 +68,16 @@ class GeminiClient:
             
             if process.returncode != 0:
                 error_msg = stderr.decode().strip()
-                self.logger.error(f"Erreur Gemini CLI: {error_msg}")
-                raise Exception(f"Gemini CLI a échoué: {error_msg}")
+                self.logger.error(f"Gemini CLI error: {error_msg}")
+                raise Exception(f"Gemini CLI failed: {error_msg}")
             
             result = stdout.decode().strip()
-            self.logger.info(f"Réponse Gemini reçue ({len(result)} caractères)")
+            self.logger.info(f"Gemini response received ({len(result)} characters)")
             
             return result
             
         except Exception as e:
-            self.logger.error(f"Erreur lors de l'exécution Gemini CLI: {str(e)}")
+            self.logger.error(f"Error executing Gemini CLI: {str(e)}")
             raise
     
     async def analyze_codebase(
@@ -87,34 +87,34 @@ class GeminiClient:
         model: str = "gemini-2.5-pro"
     ) -> str:
         """
-        Analyse un codebase complet avec Gemini CLI.
+        Analyze a complete codebase with Gemini CLI.
         
         Args:
-            question: Question sur le codebase
-            path: Chemin vers le répertoire à analyser
-            model: Modèle Gemini à utiliser
+            question: Question about the codebase
+            path: Path to the directory to analyze
+            model: Gemini model to use
             
         Returns:
-            str: Analyse détaillée du codebase
+            str: Detailed codebase analysis
         """
         try:
-            # Vérification que le répertoire existe
+            # Check that directory exists
             target_path = Path(path).resolve()
             if not target_path.exists():
-                raise Exception(f"Le répertoire '{path}' n'existe pas")
+                raise Exception(f"Directory '{path}' does not exist")
             
             if not target_path.is_dir():
-                raise Exception(f"'{path}' n'est pas un répertoire")
+                raise Exception(f"'{path}' is not a directory")
             
-            self.logger.info(f"Analyse du codebase: {target_path}")
+            self.logger.info(f"Analyzing codebase: {target_path}")
             
-            # Construction du prompt pour l'analyse
-            analysis_prompt = f"""Analyse ce codebase et réponds à cette question: {question}
+            # Build analysis prompt
+            analysis_prompt = f"""Analyze this codebase and answer this question: {question}
 
-Analyse l'architecture, les patterns utilisés, les technologies, 
-et donne des recommandations spécifiques."""
+Analyze the architecture, patterns used, technologies, 
+and provide specific recommendations."""
             
-            # Exécution avec --all_files pour inclure tout le codebase
+            # Execute with --all_files to include entire codebase
             return await self.execute_prompt(
                 prompt=analysis_prompt,
                 model=model,
@@ -123,15 +123,15 @@ et donne des recommandations spécifiques."""
             )
             
         except Exception as e:
-            self.logger.error(f"Erreur lors de l'analyse du codebase: {str(e)}")
+            self.logger.error(f"Error analyzing codebase: {str(e)}")
             raise
     
     def check_gemini_available(self) -> bool:
         """
-        Vérifie si Gemini CLI est disponible et configuré.
+        Check if Gemini CLI is available and configured.
         
         Returns:
-            bool: True si Gemini CLI est disponible
+            bool: True if Gemini CLI is available
         """
         try:
             result = subprocess.run(
@@ -146,10 +146,10 @@ et donne des recommandations spécifiques."""
     
     def get_gemini_info(self) -> Dict[str, Any]:
         """
-        Récupère les informations sur l'installation Gemini CLI.
+        Get information about Gemini CLI installation.
         
         Returns:
-            dict: Informations sur Gemini CLI
+            dict: Information about Gemini CLI
         """
         info = {
             "available": False,
@@ -168,9 +168,9 @@ et donne des recommandations spécifiques."""
                 info["available"] = True
                 info["version"] = result.stdout.strip()
             else:
-                info["error"] = "Gemini CLI n'est pas disponible ou configuré"
+                info["error"] = "Gemini CLI is not available or configured"
                 
         except Exception as e:
-            info["error"] = f"Erreur lors de la vérification: {str(e)}"
+            info["error"] = f"Error during verification: {str(e)}"
         
         return info
