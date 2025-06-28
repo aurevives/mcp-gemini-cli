@@ -189,7 +189,8 @@ class GeminiMCPServer(BaseMCPServer):
 server = GeminiMCPServer()
 mcp = server.mcp
 
-if __name__ == "__main__":
+def main():
+    """Entry point for console script."""
     print("🚀 Starting MCP Gemini CLI Server...")
     print("📋 Available tools:")
     print("   • gemini_prompt - Second AI opinion with Gemini 2.5 Pro")
@@ -198,3 +199,6 @@ if __name__ == "__main__":
     print()
     
     server.run()
+
+if __name__ == "__main__":
+    main()

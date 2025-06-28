@@ -34,9 +34,9 @@ pip install -r requirements.txt
 
 ### Configure Claude Code
 
-**Option 1: Direct from GitHub (Recommended)**
+**Option 1: Direct from GitHub with uvx (Recommended)**
 ```bash
-claude mcp add github:aurevives/mcp-gemini-cli gemini-cli
+claude mcp add gemini-cli -- uvx --from git+https://github.com/aurevives/mcp-gemini-cli.git mcp-gemini-cli
 ```
 
 **Option 2: Local installation**
