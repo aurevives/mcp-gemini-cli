@@ -1,0 +1,29 @@
+{
+  "name": "gemini-cli",
+  "description": "Get a second AI opinion with Gemini 2.5 Pro",
+  "version": "1.0.0",
+  "main": "server.py",
+  "command": "python3",
+  "args": ["server.py"],
+  "env": {},
+  "requirements": ["mcp[cli]", "asyncio", "pathlib"],
+  "install": {
+    "dependencies": {
+      "system": [
+        "Node.js 18+",
+        "Python 3.8+"
+      ],
+      "npm": [
+        "@google/gemini-cli"
+      ],
+      "python": [
+        "mcp[cli]"
+      ]
+    },
+    "setup": [
+      "npm install -g @google/gemini-cli",
+      "gemini",
+      "pip install -r requirements.txt"
+    ]
+  }
+}

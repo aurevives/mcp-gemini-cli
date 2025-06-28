@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 """
-MCP Gemini CLI Server - Votre second avis IA avec Gemini 2.5 Pro
-
-Serveur MCP qui encapsule Gemini CLI pour obtenir un second avis
-avec le dernier modèle Google sur des problèmes complexes.
+MCP Gemini CLI Server - Get a second AI opinion with Gemini 2.5 Pro
 """
 
 import sys
@@ -11,34 +8,28 @@ import os
 from pathlib import Path
 from typing import Dict, Any
 
-# Ajouter le répertoire MCP parent au PATH pour BaseMCPServer
-parent_mcp_dir = Path(__file__).parent.parent / "MCP"
-sys.path.insert(0, str(parent_mcp_dir))
-
-try:
-    from shared.base_server import BaseMCPServer
-except ImportError:
-    # Fallback si BaseMCPServer n'est pas disponible
-    print("Warning: BaseMCPServer not found, using basic MCP setup")
-    from mcp.server.fastmcp import FastMCP
-    
-    class BaseMCPServer:
-        def __init__(self, name: str):
-            self.name = name
-            self.mcp = FastMCP(name)
-        
-        def handle_error(self, error: Exception, context: str = "") -> Dict[str, str]:
-            error_msg = f"{context}: {str(error)}" if context else str(error)
-            return {"error": error_msg}
-        
-        def run(self, transport='stdio'):
-            self.mcp.run(transport=transport)
-
+# Standalone MCP server - works without external dependencies
+from mcp.server.fastmcp import FastMCP
 from gemini_client import GeminiClient
 
 
+class BaseMCPServer:
+    """Standalone base server for MCP."""
+    
+    def __init__(self, name: str):
+        self.name = name
+        self.mcp = FastMCP(name)
+    
+    def handle_error(self, error: Exception, context: str = "") -> Dict[str, str]:
+        error_msg = f"{context}: {str(error)}" if context else str(error)
+        return {"error": error_msg}
+    
+    def run(self, transport='stdio'):
+        self.mcp.run(transport=transport)
+
+
 class GeminiMCPServer(BaseMCPServer):
-    """Serveur MCP pour Gemini CLI - Votre second avis IA."""
+    """MCP server for Gemini CLI - Get a second AI opinion."""
     
     def __init__(self):
         super().__init__("gemini-cli")
@@ -47,46 +38,46 @@ class GeminiMCPServer(BaseMCPServer):
         self._register_tools()
     
     def _initialize_api(self):
-        """Initialise et vérifie Gemini CLI."""
+        """Initialize and check Gemini CLI."""
         try:
             info = self.gemini_client.get_gemini_info()
             if info["available"]:
-                print(f"✅ Gemini CLI initialisé - Version: {info['version']}")
+                print(f"✅ Gemini CLI initialized - Version: {info['version']}")
             else:
-                print(f"⚠️  Avertissement: {info['error']}")
-                print("   Assurez-vous que 'gemini' est installé et configuré")
+                print(f"⚠️  Warning: {info['error']}")
+                print("   Make sure 'gemini' is installed and configured")
         except Exception as e:
-            print(f"❌ Erreur initialisation Gemini CLI: {str(e)}")
+            print(f"❌ Error initializing Gemini CLI: {str(e)}")
             raise
     
     def _register_tools(self):
-        """Enregistre les tools MCP pour Gemini CLI."""
+        """Register MCP tools for Gemini CLI."""
         
         @self.mcp.tool()
         async def gemini_prompt(prompt: str, model: str = "gemini-2.5-pro") -> Dict[str, Any]:
-            """Envoie un prompt à Gemini 2.5 Pro pour obtenir un second avis.
+            """Send prompt to Gemini 2.5 Pro for second opinion.
             
-            Particulièrement utile pour :
-            - Situations complexes nécessitant une perspective différente
-            - Problèmes techniques difficiles à résoudre  
-            - Validation d'approches ou de solutions
-            - Brainstorming et génération d'idées alternatives
+            Useful for:
+            - Complex situations needing different perspective
+            - Technical problems hard to solve
+            - Validating approaches or solutions
+            - Brainstorming and generating alternatives
             
             Args:
-                prompt: La question ou problème à soumettre à Gemini
-                model: Modèle Gemini à utiliser (défaut: gemini-2.5-pro)
+                prompt: Question or problem to submit to Gemini
+                model: Gemini model to use (default: gemini-2.5-pro)
             
             Returns:
-                dict: Réponse de Gemini avec métadonnées
+                dict: Gemini response with metadata
             """
             try:
                 if not prompt.strip():
                     return self.handle_error(
-                        Exception("Le prompt ne peut pas être vide"), 
-                        "Validation prompt"
+                        Exception("Prompt cannot be empty"), 
+                        "Prompt validation"
                     )
                 
-                print(f"🤖 Envoi du prompt à Gemini {model}...")
+                print(f"🤖 Sending prompt to Gemini {model}...")
                 
                 response = await self.gemini_client.execute_prompt(
                     prompt=prompt,
@@ -100,13 +91,13 @@ class GeminiMCPServer(BaseMCPServer):
                     "response": response,
                     "metadata": {
                         "tool": "gemini_prompt",
-                        "model_info": "Gemini 2.5 Pro - Dernier modèle Google",
-                        "use_case": "Second avis IA pour problèmes complexes"
+                        "model_info": "Gemini 2.5 Pro - Latest Google model",
+                        "use_case": "Second AI opinion for complex problems"
                     }
                 }
                 
             except Exception as e:
-                return self.handle_error(e, "Erreur lors de l'exécution du prompt Gemini")
+                return self.handle_error(e, "Error executing Gemini prompt")
         
         @self.mcp.tool()
         async def gemini_analyze_codebase(
@@ -114,38 +105,38 @@ class GeminiMCPServer(BaseMCPServer):
             path: str = ".", 
             model: str = "gemini-2.5-pro"
         ) -> Dict[str, Any]:
-            """Analyse complète d'un codebase avec Gemini 2.5 Pro (contexte 1M tokens).
+            """Analyze codebase with Gemini 2.5 Pro (1M token context).
             
-            Utilise --all_files pour inclure tous les fichiers du projet et obtenir
-            une vision globale de l'architecture et des problèmes potentiels.
+            Uses --all_files to include all project files and get
+            global view of architecture and potential issues.
             
-            Particulièrement utile pour :
-            - Audit de code et review architectural
-            - Identification de patterns et anti-patterns
-            - Suggestions d'optimisation et refactoring
-            - Analyse de sécurité et bonnes pratiques
+            Useful for:
+            - Code audit and architectural review
+            - Pattern and anti-pattern identification
+            - Optimization and refactoring suggestions
+            - Security analysis and best practices
             
             Args:
-                question: Question spécifique sur le codebase
-                path: Répertoire à analyser (défaut: répertoire courant)
-                model: Modèle Gemini à utiliser (défaut: gemini-2.5-pro)
+                question: Specific question about the codebase
+                path: Directory to analyze (default: current directory)
+                model: Gemini model to use (default: gemini-2.5-pro)
                 
             Returns:
-                dict: Analyse détaillée avec recommandations
+                dict: Detailed analysis with recommendations
             """
             try:
                 if not question.strip():
                     return self.handle_error(
-                        Exception("La question ne peut pas être vide"), 
-                        "Validation question"
+                        Exception("Question cannot be empty"), 
+                        "Question validation"
                     )
                 
-                # Résolution du chemin
+                # Resolve path
                 target_path = Path(path).resolve()
                 
-                print(f"📁 Analyse du codebase: {target_path}")
+                print(f"📁 Analyzing codebase: {target_path}")
                 print(f"🔍 Question: {question}")
-                print(f"🤖 Modèle: {model} (contexte 1M tokens)")
+                print(f"🤖 Model: {model} (1M tokens context)")
                 
                 analysis = await self.gemini_client.analyze_codebase(
                     question=question,
@@ -162,20 +153,20 @@ class GeminiMCPServer(BaseMCPServer):
                     "metadata": {
                         "tool": "gemini_analyze_codebase",
                         "model_info": "Gemini 2.5 Pro - 1M tokens context",
-                        "use_case": "Analyse complète de codebase",
-                        "features": ["--all_files", "Architecture globale", "Recommandations"]
+                        "use_case": "Complete codebase analysis",
+                        "features": ["--all_files", "Global architecture", "Recommendations"]
                     }
                 }
                 
             except Exception as e:
-                return self.handle_error(e, "Erreur lors de l'analyse du codebase")
+                return self.handle_error(e, "Error analyzing codebase")
         
         @self.mcp.tool()
         async def gemini_status() -> Dict[str, Any]:
-            """Vérifie le statut et la configuration de Gemini CLI.
+            """Check Gemini CLI status and configuration.
             
             Returns:
-                dict: Informations sur l'installation et la configuration Gemini CLI
+                dict: Information about Gemini CLI installation and configuration
             """
             try:
                 info = self.gemini_client.get_gemini_info()
@@ -186,24 +177,24 @@ class GeminiMCPServer(BaseMCPServer):
                     "mcp_server": {
                         "name": self.name,
                         "tools_available": ["gemini_prompt", "gemini_analyze_codebase", "gemini_status"],
-                        "description": "MCP Gemini CLI - Votre second avis IA"
+                        "description": "MCP Gemini CLI - Get a second AI opinion"
                     }
                 }
                 
             except Exception as e:
-                return self.handle_error(e, "Erreur lors de la vérification du statut")
+                return self.handle_error(e, "Error checking status")
 
 
-# Instance globale pour l'export (pattern requis MCP)
+# Global instance for export (required MCP pattern)
 server = GeminiMCPServer()
 mcp = server.mcp
 
 if __name__ == "__main__":
-    print("🚀 Démarrage MCP Gemini CLI Server...")
-    print("📋 Tools disponibles:")
-    print("   • gemini_prompt - Second avis IA avec Gemini 2.5 Pro")
-    print("   • gemini_analyze_codebase - Analyse complète de codebase")
-    print("   • gemini_status - Statut et configuration")
+    print("🚀 Starting MCP Gemini CLI Server...")
+    print("📋 Available tools:")
+    print("   • gemini_prompt - Second AI opinion with Gemini 2.5 Pro")
+    print("   • gemini_analyze_codebase - Complete codebase analysis")
+    print("   • gemini_status - Status and configuration")
     print()
     
     server.run()
